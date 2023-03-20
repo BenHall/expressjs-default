@@ -121,6 +121,63 @@ app.get('/profile', requiresAuth(), async (req, res) => {
     ({ access_token } = await refresh());
   }
 
+  // var axios = require("axios").default;
+
+  // {"user":[{"permission_name":"read:products","description":"read:products","resource_server_name":"Shoulder Localhost","resource_server_identifier":"http://localhost:3000","sources":[{"source_id":"","source_name":"","source_type":"DIRECT"}]}]}
+  // var options = {
+  //   method: 'GET',
+  //   url: 'https://dev-shoulder.eu.auth0.com/api/v2/users/' + req.oidc.user.sub + '/permissions',
+  //   headers: {authorization: 'Bearer ' + process.env.MGMT_API_ACCESS_TOKEN}
+  // };
+
+  // axios.request(options).then(function (response) {
+  //   console.log(response.data);
+  //   res.json({"user": response.data});
+
+  // }).catch(function (error) {
+  //   console.error(error);
+  //   res.json({"error": error});
+  // });
+
+  var axios = require("axios").default;
+
+  // var options = {
+  //   method: 'POST',
+  //   url: 'https://dev-shoulder.eu.auth0.com/api/v2/users/' + req.oidc.user.sub + '/permissions',
+  //   headers: {
+  //     'content-type': 'application/json',
+  //     authorization: 'Bearer ' + process.env.MGMT_API_ACCESS_TOKEN,
+  //     'cache-control': 'no-cache'
+  //   },
+  //   data: {
+  //     permissions: [
+  //       {
+  //         resource_server_identifier: 'http://localhost:3000',
+  //         permission_name: 'read:products'
+  //       }
+  //     ]
+  //   }
+  // };
+
+  // var options = {
+  //   method: 'POST',
+  //   url: 'https://dev-shoulder.eu.auth0.com/api/v2/users/' + req.oidc.user.sub + '/roles',
+  //   headers: {
+  //     'content-type': 'application/json',
+  //     authorization: 'Bearer ' + process.env.MGMT_API_ACCESS_TOKEN,
+  //     'cache-control': 'no-cache'
+  //   },
+  //   data: {roles: ['rol_rML30VwXkSYRGBkW']}
+  // };
+
+  // axios.request(options).then(function (response) {
+  //   console.log(response.data);
+  //   res.json({"user": response.data});
+  // }).catch(function (error) {
+  //   console.error(error);
+  //   res.json({"error": error});
+  // });
+
   res.json({"user": req.oidc.user, token_type, access_token});
 });
 
