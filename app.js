@@ -9,6 +9,7 @@ var usersRouter = require('./routes/users');
 
 const jwt = require('jsonwebtoken');
 var session = require('express-session')
+const request = require('request-promise-native');
 
 var app = express();
 
@@ -27,6 +28,8 @@ var sess = {
 }
 
 const { auth, requiresAuth } = require('express-openid-connect');
+const { requiredScopes } = require('express-oauth2-jwt-bearer');
+
 // app.use(
 //   auth({
 //     authorizationParams: {
@@ -54,6 +57,8 @@ app.use(session(sess))
 app.use(
   auth({
     authRequired: false,
+    clientAssertionSigningAlg: 'RS256',
+    // jwksUri: 'https://dev-shoulder.eu.auth0.com/.well-known/jwks.json',
     authorizationParams: {
       response_type: 'code', // This requires you to provide a client secret
       audience: 'http://localhost:3000',
@@ -77,20 +82,44 @@ app.get('/login', (req, res) =>
     authorizationParams: {
       redirect_uri: 'http://localhost:3000/callback',
     },
+    afterCallback: (req, res, session) => {
+      const claims = jwt.decode(session.id_token); 
+
+      if (claims.org_id !== 'Required Organization') {
+        throw new Error('User is not a part of the Required Organization');
+      }
+      return session;
+    }
   })
 );
-
 
 app.get('/logout', (req, res) =>
   res.oidc.logout()
 );
 
+app.get('/', requiresAuth(), async (req, res) => {
+  let { token_type, access_token, isExpired, refresh } = req.oidc.accessToken;
+  if (isExpired()) {
+    ({ access_token } = await refresh());
+  }
+  const products = await request.get(`http://localhost:3002/products`, {
+    headers: {
+      Authorization: `${token_type} ${access_token}`,
+    },
+    json: true,
+  });
+  res.send(`Products: ${products.map(({ name }) => name).join(', ')}`);
+});
 
 app.get('/profile', requiresAuth(), async (req, res) => {
   // const userInfo = await req.oidc.fetchUserInfo();
   // return res.json({userInfo});
 
-  let { token_type, access_token } = req.oidc.accessToken;
+  let { token_type, access_token, isExpired, refresh } = req.oidc.accessToken;
+  if (isExpired()) {
+    console.log("Expired")
+    ({ access_token } = await refresh());
+  }
 
   res.json({"user": req.oidc.user, token_type, access_token});
 });
